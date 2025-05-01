@@ -54,13 +54,24 @@ fn time_integration_implicit(rv0: &mut (f32, f32), dt: f32) {
 
     let dfdr = 2f32 / (r0 * r0 * r0); // hint!
 
-    // let a_mat = [[???, ???], [???, ???]]; // hint
-    // let b_vec = [???, ???]; // hint
-    // let a_mat_inv = inverse_matrix_2x2(&a_mat).unwrap(); // hint
-    // let res = mult_mat2_vec(&a_mat_inv, &b_vec); // hint
-    // *rv0 = (res[0], res[1]); // hint
+    let f0 = -1f32 / (r0 * r0); // force / acceleration
 
-    *rv0 = (r0, v0); // delete this line
+    // r1 = r0 + dt * v1; v1 = v0 + dt * f1
+    // That is, r1 = r0 + dt * v1; v1 = v0 + dt * (f0 + dfdr * (r1 - r0))
+    // Rewrite the above equations as a linear equation of r1 and v1:
+    // r1 - dt * v1 = r0
+    // - dt * dfdr * r1 + v1 = v0 + dt * f0 - dt * dfdr * r0
+    // Into matrix form AX = B:
+    // [[1, -dt], [- dt * dfdr, 1]] [r1, v1]^T = [r0, v0 + dt * f0 - dt * dfdr * r0]^T
+    // Hence, A = [[1, -dt], [- dt * dfdr, 1]], B = [r0, v0 + dt * f0 - dt * dfdr * r0]^T
+
+    let a_mat = [[1.0, -dt], [-dt * dfdr, 1.0]];
+
+    let b_vec = [r0, v0 + dt * f0 - dt * dfdr * r0];
+
+    let a_mat_inv = inverse_matrix_2x2(&a_mat).unwrap(); // hint
+    let res = mult_mat2_vec(&a_mat_inv, &b_vec); // hint
+    *rv0 = (res[0], res[1]); // hint
 
     // no further edit from here
     // ----------------------
